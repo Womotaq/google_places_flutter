@@ -76,6 +76,7 @@ class GooglePlaceAutoCompleteTextField extends StatefulWidget {
 class _GooglePlaceAutoCompleteTextFieldState
     extends State<GooglePlaceAutoCompleteTextField> {
   final subject = new PublishSubject<String>();
+  late final FocusNode _focusNode;
   OverlayEntry? _overlayEntry;
   List<Prediction> predictions = [];
 
@@ -83,6 +84,29 @@ class _GooglePlaceAutoCompleteTextFieldState
 
   final _dio = Dio();
   CancelToken? _cancelToken = CancelToken();
+
+  @override
+  void initState() {
+    super.initState();
+    subject.stream
+        .distinct()
+        .debounceTime(Duration(milliseconds: widget.debounceTime))
+        .listen(textChanged);
+
+    // Add focus listener
+    _focusNode = widget.focusNode ?? FocusNode();
+    _focusNode.addListener(() {
+      if (!_focusNode.hasFocus) removeOverlay();
+    });
+  }
+
+  @override
+  void dispose() {
+    subject.close();
+    _cancelToken?.cancel();
+    removeOverlay();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -101,7 +125,7 @@ class _GooglePlaceAutoCompleteTextFieldState
                 decoration: widget.inputDecoration,
                 style: widget.textStyle,
                 controller: widget.textEditingController,
-                focusNode: widget.focusNode ?? FocusNode(),
+                focusNode: _focusNode,
                 textInputAction: widget.textInputAction ?? TextInputAction.done,
                 onFieldSubmitted: (value) {
                   if (widget.formSubmitCallback != null) {
@@ -182,15 +206,6 @@ class _GooglePlaceAutoCompleteTextFieldState
       var errorHandler = ErrorHandler.internal().handleError(e);
       _showSnackBar("${errorHandler.message}");
     }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    subject.stream
-        .distinct()
-        .debounceTime(Duration(milliseconds: widget.debounceTime))
-        .listen(textChanged);
   }
 
   textChanged(String text) async {
