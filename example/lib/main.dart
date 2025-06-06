@@ -79,18 +79,17 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
         debounceTime: 400,
         countries: ["in", "fr"],
-        isLatLngRequired: true,
-        getPlaceDetailWithLatLng: (Prediction prediction) {
+        onSelectedWithLatLng: (Prediction prediction) {
           print("placeDetails" + prediction.lat.toString());
         },
 
-        itemClick: (Prediction prediction) {
+        onSelected: (Prediction prediction) {
           controller.text = prediction.description ?? "";
           controller.selection = TextSelection.fromPosition(
               TextPosition(offset: prediction.description?.length ?? 0));
         },
         seperatedBuilder: Divider(),
-        containerHorizontalPadding: 10,
+        padding: EdgeInsets.symmetric(horizontal: 10),
 
         // OPTIONAL// If you want to customize list view item builder
         itemBuilder: (context, index, Prediction prediction) {
@@ -107,8 +106,6 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
           );
         },
-
-        isCrossBtnShown: true,
 
         // default 600 ms ,
       ),
