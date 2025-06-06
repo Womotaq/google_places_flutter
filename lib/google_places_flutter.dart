@@ -147,18 +147,12 @@ class _GooglePlaceAutoCompleteTextFieldState
   }
 
   getLocation(String text) async {
-    if (text.length == 0) {
-      alPredictions.clear();
-      this._overlayEntry?.remove();
-      return;
-    }
+    if (text.length == 0) return removeOverlay();
 
     String apiURL =
         "https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$text&key=${widget.googleAPIKey}&language=${widget.language}";
 
     if (widget.countries != null) {
-      // in
-
       for (int i = 0; i < widget.countries!.length; i++) {
         String country = widget.countries![i];
 
@@ -208,7 +202,7 @@ class _GooglePlaceAutoCompleteTextFieldState
         alPredictions.addAll(subscriptionResponse.predictions!);
       }
 
-      this._overlayEntry = null;
+      this._overlayEntry?.remove();
       this._overlayEntry = this._createOverlayEntry();
       Overlay.of(context).insert(this._overlayEntry!);
     } catch (e) {
@@ -239,9 +233,9 @@ class _GooglePlaceAutoCompleteTextFieldState
   OverlayEntry? _createOverlayEntry() {
     final renderBox = context.findRenderObject() as RenderBox?;
     if (renderBox == null) return null;
-
     final size = renderBox.size;
     final offset = renderBox.localToGlobal(Offset.zero);
+
     return OverlayEntry(
       builder: (context) => Positioned(
         left: offset.dx,
@@ -252,21 +246,23 @@ class _GooglePlaceAutoCompleteTextFieldState
           link: this._layerLink,
           offset: Offset(0.0, size.height + 5.0),
           child: Material(
+            elevation: 4,
             child: ListView.separated(
               padding: EdgeInsets.zero,
               shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
               itemCount: alPredictions.length,
               separatorBuilder: (context, pos) =>
                   widget.seperatedBuilder ?? SizedBox(),
               itemBuilder: (BuildContext context, int index) {
                 return InkWell(
-                  onTap: () async {
+                  onTap: () {
                     var selectedData = alPredictions[index];
                     if (index < alPredictions.length) {
                       widget.itemClick!(selectedData);
 
                       if (widget.isLatLngRequired) {
-                        await getPlaceDetailsFromPlaceId(selectedData);
+                        getPlaceDetailsFromPlaceId(selectedData);
                       }
                       removeOverlay();
                     }
@@ -289,10 +285,8 @@ class _GooglePlaceAutoCompleteTextFieldState
 
   removeOverlay() {
     alPredictions.clear();
-    this._overlayEntry = this._createOverlayEntry();
-
-    Overlay.of(context).insert(this._overlayEntry!);
-    this._overlayEntry!.markNeedsBuild();
+    _overlayEntry?.remove();
+    _overlayEntry = null;
   }
 
   Future<void> getPlaceDetailsFromPlaceId(Prediction prediction) async {
