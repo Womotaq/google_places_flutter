@@ -83,11 +83,7 @@ class _MyHomePageState extends State<MyHomePage> {
           print("placeDetails" + prediction.lat.toString());
         },
 
-        onSelected: (Prediction prediction) {
-          controller.text = prediction.description ?? "";
-          controller.selection = TextSelection.fromPosition(
-              TextPosition(offset: prediction.description?.length ?? 0));
-        },
+        onChanged: (String? text) => controller.text = text ?? "",
         seperatedBuilder: Divider(),
         padding: EdgeInsets.symmetric(horizontal: 10),
 

@@ -38,7 +38,7 @@ class GooglePlaceAutoCompleteTextField extends StatefulWidget {
   });
 
   final InputDecoration inputDecoration;
-  final void Function(String text)? onChanged;
+  final void Function(String? text)? onChanged;
 
   /// If provided, will be called right after [onChanged],
   /// with a Prediction where the latitude and longitude are provided.
@@ -246,7 +246,7 @@ class _GooglePlaceAutoCompleteTextFieldState
                   onTap: () {
                     var selectedData = predictions[index];
                     if (index < predictions.length) {
-                      widget.onChanged?.call(selectedData.description ?? '');
+                      widget.onChanged?.call(selectedData.description);
 
                       if (widget.onSelectedWithLatLng != null) {
                         completeWithLatLng(selectedData);
