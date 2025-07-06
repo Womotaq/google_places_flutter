@@ -1,10 +1,13 @@
-class PlaceType {
-  final String apiString;
+enum PlaceType {
+  geocode("geocode"),
+  address("address"),
+  establishment("establishment"),
+
+  /// Broken ? A valid api key gets a 403 error.
+  region("(region)"),
+  cities("(cities)");
+
   const PlaceType(this.apiString);
 
-  static const geocode = PlaceType("geocode");
-  static const address = PlaceType("address");
-  static const establishment = PlaceType("establishment");
-  static const region = PlaceType("(region)");
-  static const cities = PlaceType("(cities)");
+  final String apiString;
 }
