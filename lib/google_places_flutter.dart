@@ -15,7 +15,7 @@ class GooglePlaceAutoCompleteTextField extends StatefulWidget {
   const GooglePlaceAutoCompleteTextField({
     required this.textEditingController,
     required this.googleAPIKey,
-    required this.onSelected,
+    required this.onChanged,
     this.onSelectedWithLatLng,
     this.debounceTime = 600,
     this.inputDecoration = const InputDecoration(),
@@ -38,10 +38,10 @@ class GooglePlaceAutoCompleteTextField extends StatefulWidget {
   });
 
   final InputDecoration inputDecoration;
-  final void Function(Prediction prediction)? onSelected;
+  final void Function(String text)? onChanged;
 
-  /// If provided, will be called right after [onSelected],
-  /// but with a Prediction where the latitude and longitude are provided.
+  /// If provided, will be called right after [onChanged],
+  /// with a Prediction where the latitude and longitude are provided.
   final void Function(Prediction prediction)? onSelectedWithLatLng;
 
   final TextStyle textStyle;
@@ -212,9 +212,9 @@ class _GooglePlaceAutoCompleteTextFieldState
     if (text.isNotEmpty) {
       getLocation(text);
     } else {
-      predictions.clear();
-      this._overlayEntry?.remove();
+      removeOverlay();
     }
+    widget.onChanged?.call(text);
   }
 
   OverlayEntry? _createOverlayEntry() {
@@ -246,7 +246,7 @@ class _GooglePlaceAutoCompleteTextFieldState
                   onTap: () {
                     var selectedData = predictions[index];
                     if (index < predictions.length) {
-                      widget.onSelected!(selectedData);
+                      widget.onChanged?.call(selectedData.description ?? '');
 
                       if (widget.onSelectedWithLatLng != null) {
                         completeWithLatLng(selectedData);
@@ -273,6 +273,10 @@ class _GooglePlaceAutoCompleteTextFieldState
     predictions.clear();
     _overlayEntry?.remove();
     _overlayEntry = null;
+
+    if (_cancelToken?.isCancelled == false) {
+      _cancelToken?.cancel();
+    }
   }
 
   Future<void> completeWithLatLng(Prediction prediction) async {
@@ -291,15 +295,6 @@ class _GooglePlaceAutoCompleteTextFieldState
       var errorHandler = ErrorHandler.internal().handleError(e);
       _showSnackBar("${errorHandler.message}");
     }
-  }
-
-  void _clearData() {
-    widget.textEditingController.clear();
-    if (_cancelToken?.isCancelled == false) {
-      _cancelToken?.cancel();
-    }
-
-    removeOverlay();
   }
 
   _showSnackBar(String errorData) {
